@@ -116,6 +116,7 @@ class TrackingController extends Controller
         ]);
 
         // notify users which booked from the next station to be implemented later
+        // make seats valid when user arrive to his station to be implemented later 
 
         return response()->json(['message' => 'Trip instance updated successfully. current station: ' . Station::find($current_station_id)->name . ' and its status: ' . $status], 200);
     }

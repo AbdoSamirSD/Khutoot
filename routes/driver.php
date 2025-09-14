@@ -17,8 +17,8 @@ Route::prefix('driver')
     ->group(function () {
         Route::prefix('trip')
             ->group(function () {
-                Route::get('/', [TripInstanceController::class, 'index']);
-                Route::get('/{status}', [TripInstanceController::class, 'trips']); // show completed or upcoming trips
+                Route::get('/', [TripInstanceController::class, 'index']);          // show ongoing trip (current trip)
+                Route::get('/{status}', [TripInstanceController::class, 'trips']);  // show completed or upcoming trips
                 //passengers
                 Route::get('/{tripInstanceId}/passengers', [TripInstanceController::class, 'passengers']);
                 Route::get('/{tripInstanceId}/start', [TripInstanceController::class, 'start']);
