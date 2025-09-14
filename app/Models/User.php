@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'email_verified_at',
         'image',
+        'city',
         'created_at',
         'updated_at',
     ];
@@ -73,10 +74,10 @@ class User extends Authenticatable
         return $this->hasOne(WalletUser::class);
     }
 
-    public function walletTransactions()
-    {
-        return $this->hasMany(WalletUserTransaction::class);
-    }
+    // public function walletTransactions()
+    // {
+    //     return $this->hasMany(WalletUserTransaction::class);
+    // }
 
     public function tripInstances()
     {

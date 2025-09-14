@@ -25,22 +25,20 @@ Route::prefix('user')
     ->group(function () {
         Route::prefix('profile')
             ->group(function () {
-                Route::get('/', [ProfileController::class, 'profile']);
+                Route::get('/', [ProfileController::class, 'index']);
                 Route::put('/', [ProfileController::class, 'updateProfile']);
                 Route::delete('/', [ProfileController::class, 'deleteProfile']);
+                Route::post('/change-password', [ProfileController::class, 'changePassword']);
             });
 
-        Route::prefix('settings')
-        ->group(function () {
-            Route::get('/', [ProfileController::class, 'settings']);
-            Route::put('/', [ProfileController::class, 'updateSettings']);
-            Route::post('/change-password', [ProfileController::class, 'changePassword']);
-        });
+        // Route::prefix('settings')
+        // ->group(function () {
+        // });
 
         Route::prefix('wallet')->group(function(){
             Route::get('/', [WalletController::class, 'index']); // User wallet overview
             Route::post('/add', [WalletController::class, 'addFunds']); // Add funds to wallet (send screenshot of payment, amount and reference number)
-            Route::post('/withdraw', [WalletController::class, 'withdrawFunds']); // Withdraw funds from wallet
+            // Route::post('/withdraw', [WalletController::class, 'withdrawFunds']); // Withdraw funds from wallet
             Route::get('/transactions', [WalletController::class, 'transactionHistory']); // View transaction history
         });
 

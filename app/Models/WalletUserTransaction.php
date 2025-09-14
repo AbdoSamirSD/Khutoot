@@ -13,8 +13,7 @@ class WalletUserTransaction extends Model
         'user_wallet_id',
         'amount',
         'type',
-        'created_at',
-        'updated_at',
+        'booking_id'
     ];
 
     protected $casts = [
@@ -23,6 +22,11 @@ class WalletUserTransaction extends Model
 
     public function wallet()
     {
-        return $this->belongsTo(WalletUser::class);
+        return $this->belongsTo(WalletUser::class, 'user_wallet_id');
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 }

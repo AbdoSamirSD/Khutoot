@@ -26,5 +26,7 @@ class WalletUser extends Model
         return $this->hasMany(WalletUserTransaction::class);
     }
 
-
+    public function payments(){
+        return $this->hasMany(Payment::class);
+    }
 }

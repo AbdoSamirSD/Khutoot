@@ -44,4 +44,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Station::class, 'end_station_id');
     }
+
+    public function transaction()
+    {
+        return $this->hasOne(WalletUserTransaction::class);
+    }
 }
