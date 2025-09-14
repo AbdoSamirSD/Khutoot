@@ -17,8 +17,8 @@ class RouteStationSeeder extends Seeder
                 'route_id' => $i,
                 'station_id' => rand(1, 10),
                 'station_order' => $i,
-                'arrival_date' => now()->addMinutes(rand(1, 120)),
-                'departure_date' => now()->addMinutes(rand(121, 240)),
+                'arrival_time' => now()->addMinutes(rand(1, 120)),
+                'departure_time' => now()->addMinutes(rand(121, 240)),
             ]);
         }
     }
