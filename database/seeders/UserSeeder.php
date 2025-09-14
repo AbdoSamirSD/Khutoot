@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
                 'phone' => rand(1000000000, 9999999999),
                 'email' => 'user' . $i . '@example.com',
                 'password' => bcrypt('password'),
+                'city' => 'cairo'
             ]);
         }
     }
