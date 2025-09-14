@@ -36,6 +36,7 @@ Route::prefix('driver')
             // Route::post('/{tripInstanceId}', [TrackingController::class, 'show']);
             // Route::post('/{tripInstanceId}/depart', [TrackingController::class, 'depart']);
             // Route::post('/{tripInstanceId}/delayed', [TrackingController::class, 'delayed']);
+            
         });
 
         // Route::prefix('wallet')
