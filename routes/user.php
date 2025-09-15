@@ -24,10 +24,10 @@ Route::prefix('user')
 ->group(function () {
     Route::prefix('profile')
     ->group(function () {
-        Route::get('/', [ProfileController::class, 'index']);
-        Route::put('/', [ProfileController::class, 'updateProfile']);
-        Route::delete('/', [ProfileController::class, 'deleteProfile']);
-        Route::post('/change-password', [ProfileController::class, 'changePassword']);
+        Route::get('/', [ProfileController::class, 'index']);                           // Done
+        Route::put('/', [ProfileController::class, 'updateProfile']);                   // Done
+        Route::delete('/', [ProfileController::class, 'deleteProfile']);                // Done
+        Route::post('/change-password', [ProfileController::class, 'changePassword']);  // Done
     });
     
     Route::post('/logout', [AuthController::class, 'logout']);                  // Done
