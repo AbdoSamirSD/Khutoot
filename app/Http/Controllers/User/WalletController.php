@@ -37,7 +37,7 @@ class WalletController extends Controller
         }
 
         $transactions = $user->wallet->transactions()->with('booking')->orderBy('created_at', 'desc')->get();
-        if(!$transactions){
+        if($transactions->isEmpty()){
              return response()->json(['message' => 'No history found for this wallet.'], 404);
         }
         return response()->json([
