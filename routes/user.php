@@ -1,23 +1,23 @@
 <?php
 
-use app\Http\Controllers\User\AuthController;
-use app\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\AuthController;
+use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\ReportController;
 use App\Http\Controllers\User\ReviewController;
-use app\Http\Controllers\User\WalletController;
-use app\Http\Controllers\User\NotificationController;
-use app\Http\Controllers\User\TicketController;
-use app\Http\Controllers\User\TripInstanceController;
+use App\Http\Controllers\User\WalletController;
+use App\Http\Controllers\User\NotificationController;
+use App\Http\Controllers\User\TicketController;
+use App\Http\Controllers\User\TripInstanceController;
 use Illuminate\Support\Facades\Route;
 
 
 
 
 Route::prefix('user/auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/register', [AuthController::class, 'register']);              // Done
+    Route::post('/login', [AuthController::class, 'login']);                    // Done 
+    Route::post('/logout', [AuthController::class, 'logout']);                  // Done
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']); 
 });
 
 Route::prefix('user')

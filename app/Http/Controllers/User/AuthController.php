@@ -8,8 +8,6 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    //
-
     public function register(Request $request)
     {
         // Validate the request data

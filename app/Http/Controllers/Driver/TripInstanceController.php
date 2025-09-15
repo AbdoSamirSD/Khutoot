@@ -51,6 +51,8 @@ class TripInstanceController extends Controller
                         return [
                             'station_name' => $routeStation->station->name,
                             'station_order' => $routeStation->station_order,
+                            'arrival_time' => $routeStation->arrival_time,
+                            'departure_time' => $routeStation->departure_time,
                         ];
                     })->sortBy('station_order')->values()->all(), // sort by station order and reset keys
                 ]
