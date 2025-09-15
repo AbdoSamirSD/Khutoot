@@ -10,7 +10,7 @@ class WalletController extends Controller
     //
 
     public function index(){
-        $user = auth('user')->user();
+        $user = auth('users')->user();
         if(!$user){
             return response()->json(['message' => 'Unauthorized'], 401);
         }
