@@ -49,4 +49,8 @@ class Booking extends Model
     {
         return $this->hasOne(WalletUserTransaction::class);
     }
+
+    public function tickets(){
+        
+    }
 }
