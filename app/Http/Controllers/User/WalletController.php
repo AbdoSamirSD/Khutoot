@@ -90,11 +90,13 @@ class WalletController extends Controller
 
         return response()->json([
             'message' => 'Add funds request submitted successfully. Awaiting admin approval.',
-            'amount' => $request->amount,
-            'status' => 'pending',
-            'payment_method' => $request->payment_method,
-            'screenshot_url' => asset('storage/' . $screenshotPath),
-            'reference_number' => $request->reference_number
+            'payment' => [
+                'amount' => $request->amount,
+                'status' => 'pending',
+                'payment_method' => $request->payment_method,
+                'screenshot_url' => asset('storage/' . $screenshotPath),
+                'reference_number' => $request->reference_number
+            ]
         ], 200);
     }
 }
