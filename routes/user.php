@@ -37,9 +37,12 @@ Route::prefix('user')
 
         Route::prefix('wallet')->group(function(){
             Route::get('/', [WalletController::class, 'index']); // User wallet overview
+            // Done
             Route::post('/add', [WalletController::class, 'addFunds']); // Add funds to wallet (send screenshot of payment, amount and reference number)
+            // Done
             // Route::post('/withdraw', [WalletController::class, 'withdrawFunds']); // Withdraw funds from wallet
             Route::get('/transactions', [WalletController::class, 'transactionHistory']); // View transaction history
+            // Done
         });
 
         Route::prefix('book-ticket')->group(function(){
@@ -51,9 +54,9 @@ Route::prefix('user')
 
         Route::prefix('trips')->group(function(){
             Route::get('/', [TripInstanceController::class, 'listTrips']); // List available trips
-            Route::get('/search', [TripInstanceController::class, 'searchTrips']); // Search trips by criteria
-            Route::get('/{tripId}', [TripInstanceController::class, 'viewTrip']); // View trip details and available seats
-            Route::get('/{tripInstanceId}/tracking', [TripInstanceController::class, 'tracking']); // Real-time tracking of trip instance
+            Route::get('/search/{query}', [TripInstanceController::class, 'searchTrips']); // Search trips by criteria
+            Route::get('/{tripInstanceId}', [TripInstanceController::class, 'viewTrip']); // View trip details and available seats
+            // Route::get('/{tripInstanceId}/tracking', [TripInstanceController::class, 'tracking']); // Real-time tracking of trip instance
         });
 
         Route::prefix('notifications')->group(function(){
@@ -65,7 +68,7 @@ Route::prefix('user')
 
         Route::prefix('reviews')->group(function(){
             Route::post('/', [ReviewController::class, 'submitReview']); // Submit a review for a trip
-            Route::get('/{tripId}', [ReviewController::class, 'viewReviews']); // View reviews for a trip
+            Route::get('/{tripInstanceId}', [ReviewController::class, 'viewReviews']); // View reviews for a trip
         });
 
         Route::prefix('report')->group(function(){
