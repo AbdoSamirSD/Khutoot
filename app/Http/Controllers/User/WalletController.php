@@ -69,6 +69,7 @@ class WalletController extends Controller
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
+            $user->load('wallet');
         }
 
         // Handle screenshot upload
