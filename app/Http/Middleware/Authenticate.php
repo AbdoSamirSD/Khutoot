@@ -12,7 +12,10 @@ class Authenticate extends Middleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    protected function unauthenticated($request, array $guards) {
-        abort(response()->json(['message' => 'Unauthorized'], 401));
+    protected function redirectTo(\Illuminate\Http\Request $request)
+    {
+        if (! $request->expectsJson()) {
+            abort(401, 'Unauthorized');
+        }
     }
 }
