@@ -49,7 +49,6 @@ class TripInstanceController extends Controller
                     'available_seats' => $tripInstance->available_seats,
                     'stations_of_trip' => $tripInstance->trip->route->routeStations->map(function($routeStation) {
                         return [
-                            'station_id' => $routeStation->station->id,
                             'station_name' => $routeStation->station->name,
                             'station_order' => $routeStation->station_order,
                         ];
