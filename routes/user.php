@@ -16,21 +16,21 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('user/auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);              // Done
     Route::post('/login', [AuthController::class, 'login']);                    // Done 
-    Route::post('/logout', [AuthController::class, 'logout']);                  // Done
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']); 
 });
 
 Route::prefix('user')
-    ->middleware('auth:sanctum')
+->middleware('auth:sanctum')
+->group(function () {
+    Route::prefix('profile')
     ->group(function () {
-        Route::prefix('profile')
-            ->group(function () {
-                Route::get('/', [ProfileController::class, 'index']);
-                Route::put('/', [ProfileController::class, 'updateProfile']);
-                Route::delete('/', [ProfileController::class, 'deleteProfile']);
-                Route::post('/change-password', [ProfileController::class, 'changePassword']);
-            });
-
+        Route::get('/', [ProfileController::class, 'index']);
+        Route::put('/', [ProfileController::class, 'updateProfile']);
+        Route::delete('/', [ProfileController::class, 'deleteProfile']);
+        Route::post('/change-password', [ProfileController::class, 'changePassword']);
+    });
+    
+    Route::post('/logout', [AuthController::class, 'logout']);                  // Done
         // Route::prefix('settings')
         // ->group(function () {
         // });
