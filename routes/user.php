@@ -30,7 +30,7 @@ Route::prefix('user')
         Route::post('/change-password', [ProfileController::class, 'changePassword']);
     });
     
-    Route::post('/logout', [AuthController::class, 'logout']);                  // Done
+    Route::prefix('/auth')->post('/logout', [AuthController::class, 'logout']);                  // Done
         // Route::prefix('settings')
         // ->group(function () {
         // });
