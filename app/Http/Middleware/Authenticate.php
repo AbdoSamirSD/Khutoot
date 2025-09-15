@@ -2,20 +2,20 @@
 
 namespace App\Http\Middleware;
 
-
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Http\Request;
 
 class Authenticate extends Middleware
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Get the path the user should be redirected to when they are not authenticated.
      */
-    protected function redirectTo(\Illuminate\Http\Request $request)
+    protected function redirectTo(Request $request): ?string
     {
         if (! $request->expectsJson()) {
-            abort(response()->json(['message' => 'Unauthorized'], 401));
+            abort(response()->json([
+                'message' => 'Unauthenticated.'
+            ], 401));
         }
     }
 }
