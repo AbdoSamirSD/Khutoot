@@ -47,6 +47,13 @@ class TripInstanceController extends Controller
                     'arrival_time' => $tripInstance->arrival_time->format('Y-m-d H:i:s'),
                     'booked_seats' => $tripInstance->booked_seats,
                     'available_seats' => $tripInstance->available_seats,
+                    'stations_of_trip' => $tripInstance->trip->route->routeStations->map(function($routeStation) {
+                        return [
+                            'station_id' => $routeStation->station->id,
+                            'station_name' => $routeStation->station->name,
+                            'station_order' => $routeStation->station_order,
+                        ];
+                    })->sortBy('station_order')->values()->all(), // sort by station order and reset keys
                 ]
             ]
         ]);
