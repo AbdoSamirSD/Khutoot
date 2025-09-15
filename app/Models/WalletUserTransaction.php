@@ -22,7 +22,7 @@ class WalletUserTransaction extends Model
 
     public function wallet()
     {
-        return $this->belongsTo(WalletUser::class, 'user_wallet_id');
+        return $this->belongsTo(WalletUser::class);
     }
 
     public function booking()
