@@ -38,8 +38,10 @@ Route::prefix('user')
         Route::prefix('wallet')->group(function(){
             Route::get('/', [WalletController::class, 'index']); // User wallet overview
             // Done
+
             Route::post('/add', [WalletController::class, 'addFunds']); // Add funds to wallet (send screenshot of payment, amount and reference number)
             // Done
+            
             // Route::post('/withdraw', [WalletController::class, 'withdrawFunds']); // Withdraw funds from wallet
             Route::get('/transactions', [WalletController::class, 'transactionHistory']); // View transaction history
             // Done
@@ -54,8 +56,14 @@ Route::prefix('user')
 
         Route::prefix('trips')->group(function(){
             Route::get('/', [TripInstanceController::class, 'listTrips']); // List available trips
+            // Done
+
             Route::get('/search/{query}', [TripInstanceController::class, 'searchTrips']); // Search trips by criteria
+            // Done
+            
             Route::get('/{tripInstanceId}', [TripInstanceController::class, 'viewTrip']); // View trip details and available seats
+            // Done
+            
             // Route::get('/{tripInstanceId}/tracking', [TripInstanceController::class, 'tracking']); // Real-time tracking of trip instance
         });
 
@@ -67,8 +75,10 @@ Route::prefix('user')
         });
 
         Route::prefix('reviews')->group(function(){
-            Route::post('/', [ReviewController::class, 'submitReview']); // Submit a review for a trip
-            Route::get('/{tripInstanceId}', [ReviewController::class, 'viewReviews']); // View reviews for a trip
+            Route::post('/', [ReviewController::class, 'submitTripReview']); // Submit a review for a trip
+            Route::get('/{tripId}', [ReviewController::class, 'viewReviews']); // View reviews for a trip
+            
+            //Route::post('/driver', [ReviewController::class, 'submitDriverReview']);
         });
 
         Route::prefix('report')->group(function(){

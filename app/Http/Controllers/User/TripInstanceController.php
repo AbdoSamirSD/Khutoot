@@ -154,6 +154,7 @@ class TripInstanceController extends Controller
             'message' => 'Trip instance retrieved successfully.',
             'data' => [
                 'trip_instance_id' => $tripInstanceId,
+                'trip_id' => $tripInstance->trip_id,
                 'trip_location' => $tripInstance->trip->location ?? null,
                 'arrival_time' => $tripInstance->arrival_time,
                 'departure_time' => $tripInstance->departure_time,

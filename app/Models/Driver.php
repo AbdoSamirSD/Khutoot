@@ -50,4 +50,9 @@ class Driver extends Model
     {
         return $this->hasOne(Trip::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

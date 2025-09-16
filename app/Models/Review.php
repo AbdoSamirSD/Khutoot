@@ -10,6 +10,8 @@ class Review extends Model
 
     protected $fillable = [
         'user_id',
+        'driver_id',
+        'trip_instance_id',
         'trip_id',
         'rating',
         'comment',
@@ -26,4 +28,15 @@ class Review extends Model
     {
         return $this->belongsTo(TripInstance::class);
     }
+
+    public function trip()
+    {
+        return $this->belongsTo(Trip::class);
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+
 }

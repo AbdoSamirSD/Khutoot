@@ -40,4 +40,9 @@ class Trip extends Model
     {
         return $this->hasMany(TripInstance::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

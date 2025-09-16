@@ -44,4 +44,9 @@ class TripInstance extends Model
     {
         return $this->hasMany(Tracking::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }
