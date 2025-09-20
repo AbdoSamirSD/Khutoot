@@ -82,9 +82,12 @@ Route::prefix('user')
         });
 
         Route::prefix('report')->group(function(){
-            Route::post('/bus', [ReportController::class, 'reportIssue']); // Report an issue with a trip
-            Route::post('/driver', [ReportController::class, 'reportDriver']); // Report an issue with another user
             Route::post('/', [ReportController::class, 'reportIssue']); // Report an issue with a trip
+            // Done
+            Route::get('/', [ReportController::class, 'viewReports']); // List user's reports
+            // Done
+            Route::get('/{report_number}', [ReportController::class, 'viewReportDetails']);
+            // Done
         });
     });
 

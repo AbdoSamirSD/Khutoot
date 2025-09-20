@@ -83,4 +83,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(TripInstance::class);
     }
+
+    public function reports(){
+        return $this->hasMany(Report::class);
+    }
 }
