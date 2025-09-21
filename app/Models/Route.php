@@ -15,14 +15,14 @@ class Route extends Model
         'updated_at',
     ];
 
-    public function trip()
+    public function trips()
     {
-        return $this->hasMany(Trip::class);
+        return $this->belongsToMany(Trip::class);
     }
 
     public function stations()
     {
-        return $this->belongsToMany(Station::class, 'route_stations')->withPivot(['station_order', 'arrival_time', 'departure_time']);
+        return $this->hasMany(Station::class, 'route_stations')->withPivot(['station_order', 'arrival_time', 'departure_time']);
     }
 
     public function routeStations()

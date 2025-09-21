@@ -21,4 +21,12 @@ class Bus extends Model
     {
         return $this->belongsTo(Driver::class);
     }
+
+    public function trip(){
+        return $this->belongsTo(Trip::class);
+    }
+
+    public function seats(){
+        return $this->hasMany(Seat::class);
+    }
 }

@@ -48,7 +48,7 @@ Route::prefix('user')
         });
 
         Route::prefix('book-ticket')->group(function(){
-            Route::post('/', [TicketController::class, 'bookTicket']); // Book a ticket
+            Route::post('/', [TicketController::class, 'bookTickets']); // Book tickets
             Route::get('/{ticketId}', [TicketController::class, 'viewTicket']); // View ticket details
             Route::get('/', [TicketController::class, 'listTickets']); // List all tickets (history of trips booked)
             Route::delete('/{ticketId}', [TicketController::class, 'cancelTicket']); // Cancel a ticket
@@ -76,8 +76,9 @@ Route::prefix('user')
 
         Route::prefix('reviews')->group(function(){
             Route::post('/', [ReviewController::class, 'submitTripReview']); // Submit a review for a trip
+            // Done
             Route::get('/{tripId}', [ReviewController::class, 'viewReviews']); // View reviews for a trip
-            
+            // Done
             //Route::post('/driver', [ReviewController::class, 'submitDriverReview']);
         });
 
