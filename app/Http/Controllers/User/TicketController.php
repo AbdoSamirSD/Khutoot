@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use App\Models\TripInstance;
 use App\Models\Booking;
@@ -31,58 +32,95 @@ class TicketController extends Controller
         }
 
 
-        // 1. Fetch trip instance with related trip and bus details
-        $tripInstance = TripInstance::with(['trip.bus.seats'])->find($request->trip_instance_id);
-        if (!$tripInstance) {
-            return response()->json(['error' => 'Trip instance not found'], 404);
-        }
-
-        // 2. Validate pick-up and arrival stations
-        $stations = $tripInstance->trip->route->routeStations->sortBy('station_order')->pluck('station_id')->toArray();
-        $pickUpIndex = array_search($request->pick_up_station_id, $stations);
-        $arrivalIndex = array_search($request->arrival_station_id, $stations);
-        if ($pickUpIndex === false || $arrivalIndex === false || $arrivalIndex <= $pickUpIndex) {
-            return response()->json(['error' => 'Invalid pick-up or arrival station'], 422);
-        }
-
-
-        // 3. Check seat availability
-        $bookedSeats = array_unique($request->seats);
-        if(count($bookedSeats) !== count($request->seats)){
-            return response()->json(['error' => 'Duplicate seats selected'], 422);
-        }
-        
-        $availableSeats = $tripInstance->trip->bus->seats->whereIn('id', $bookedSeats);
-        if(count($availableSeats) !== count($bookedSeats)){
-            return response()->json(['error' => 'One or more selected seats do not exist'], 422);
-        }
-        foreach($availableSeats as $seat){
-            if($seat->status == 'used'){
-                return response()->json(['error' => 'Seat '. $seat->seat_number . ' is aleardy booked'], 422);
-            }
-        }
-        
-        // 4. Calculate total fare
-        $totalFare = count($bookedSeats) * $tripInstance->trip->price;
-        $wallet = $user->wallet;
-        if($wallet->balance < $totalFare){
-            return response()->json(['error' => 'Insufficient wallet balance'], 422);
-        }
-
-
-
-        // use DB::transaction to ensure atomicity
         try {
-            $response = \DB::transaction(function () use ($user, $request, $tripInstance, $availableSeats, $totalFare, $wallet) 
+            $response = \DB::transaction(function () use ($user, $request) 
             {
-
-                // book the seats (mark as used)
-                foreach($availableSeats as $seat){
-                    $seat->update([
-                        'status' => 'used'
-                    ]);
+                // 1. Fetch trip instance with related trip and bus details
+                $tripInstance = TripInstance::with(['trip.bus.seats', 'trip.route.routeStations'])
+                    ->lockForUpdate()
+                    ->find($request->trip_instance_id);
+                if (!$tripInstance) {
+                    return response()->json(['error' => 'Trip instance not found'], 404);
                 }
-        
+
+                // 2. Validate pick-up and arrival stations
+                $stations = $tripInstance->trip->route->routeStations->sortBy('station_order')->pluck('station_id')->toArray();
+                $stationIndexMap = array_flip($stations);
+                $pickUpIndex = $stationIndexMap[$request->pick_up_station_id] ?? false;
+                $arrivalIndex = $stationIndexMap[$request->arrival_station_id] ?? false;
+                if ($pickUpIndex === false || $arrivalIndex === false || $arrivalIndex <= $pickUpIndex) {
+                    return response()->json(['error' => 'Invalid pick-up or arrival station'], 422);
+                }
+
+
+                // 3. Check seat availability
+                $bookedSeats = array_values(array_unique($request->seats));
+                if (count($bookedSeats) !== count($request->seats)) {
+                    return response()->json(['error' => 'Duplicate seats selected'], 422);
+                }
+
+                $allSeats = $tripInstance->trip->bus->seats->pluck('id')->toArray();
+                $seatNumberMap = $tripInstance->trip->bus->seats->pluck('seat_number', 'id')->toArray();
+                $invalidSeats = array_diff($bookedSeats, $allSeats);
+                if ($invalidSeats) {
+                    return response()->json([
+                        'error' => 'Some selected seats do not exist',
+                        'invalid_seats' => array_map(fn($id) => "Seat ID $id", $invalidSeats)
+                    ], 422);
+                }
+
+                $allTickets = Ticket::where('trip_instance_id', $tripInstance->id)
+                    ->whereIn('seat_status', ['booked', 'reserved'])
+                    ->whereIn('seat_id', $bookedSeats)
+                    ->with('booking')
+                    ->lockForUpdate()
+                    ->get();
+                
+                $unavailableSeats = [];
+                $availableSeatMap = array_flip($bookedSeats);
+
+                foreach($allTickets as $ticket){
+                    if(!isset($availableSeatMap[$ticket->seat_id])) continue;
+
+                    $ticketPickUpIndex = $stationIndexMap[$ticket->booking->start_station_id] ?? null;
+                    $ticketArrivalIndex = $stationIndexMap[$ticket->booking->end_station_id] ?? null;
+                    if($ticketPickUpIndex === null || $ticketArrivalIndex === null) continue;
+
+
+                    $hasOverlap = !($arrivalIndex <= $ticketPickUpIndex || $pickUpIndex >= $ticketArrivalIndex);
+                    if($hasOverlap){
+                        $unavailableSeats[] = [
+                            'seat_id' => $ticket->seat_id,
+                            'seat_number' => $seatNumberMap[$ticket->seat_id] ?? null,
+                            'reason' => 'Seat already booked for overlapping trip segment'
+                        ];
+                        unset($availableSeatMap[$ticket->seat_id]);
+                    }
+                }
+
+                if($unavailableSeats){
+                    $availableSeats = array_map(function ($seatId) use ($seatNumberMap) {
+                        return [
+                            'seat_id' => $seatId,
+                            'seat_number' => $seatNumberMap[$seatId] ?? null,
+                        ];
+                    }, array_keys($availableSeatMap));
+
+                    return response()->json([
+                        'error' => 'One or more selected seats are not available', 
+                        'unavailable_seats' => $unavailableSeats,
+                        'available_seats' => $availableSeats
+                    ], 422);
+                }
+                // $availableSeats = $tripInstance->trip->bus->seats->whereIn('id', $bookedSeats);
+                
+                // 4. Calculate total fare
+                $totalFare = count($bookedSeats) * $tripInstance->trip->price;
+                $wallet = $user->wallet()->lockForUpdate()->first();
+                if($wallet->balance < $totalFare){
+                    return response()->json(['error' => 'Insufficient wallet balance'], 422);
+                }
+
                 // 3. Create ticket records
                 // book tickets
                 $booking = Booking::create([
@@ -97,21 +135,26 @@ class TicketController extends Controller
         
                 // 4. Process payment
                 // create tickets for each seat
-                $tickets = collect();
-                foreach($availableSeats as $seat){
-                    $tickets->push($booking->tickets()->create([
+                $ticketsData = [];
+                foreach($bookedSeats as $seatId){
+                    $ticketsData[] = [
                         'booking_id' => $booking->id,
-                        'ticket_number' => 'TCKT-' . strtoupper(\Str::random(10)),
+                        'ticket_number' => 'TCKT-' . strtoupper(\Str::uuid()),
                         'status' => 'valid',
-                        'seat_id' => $seat->id,
-                    ]));
+                        'seat_id' => $seatId,
+                        'seat_status' => 'booked',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
                 }
-        
+                
+                Ticket::insert($ticketsData);
+                $tickets = Ticket::where('booking_id', $booking->id)->with('seat')->get();
+                
+                
                 // Deduct from wallet
-                $user->wallet->update([
-                    'balance' => $wallet->balance - $totalFare
-                ]);
-                $wallet->refresh();
+                $wallet->balance -= $totalFare;
+                $wallet->save();
                 
                 // record wallet transaction
                 $wallet->transactions()->create([
@@ -134,12 +177,14 @@ class TicketController extends Controller
                         ];
                     })->all(),
                     'booking_id' => $booking->id,
+                    'booking_status' => $booking->status,
                     'total_fare' => $totalFare,
                     'wallet_balance' => $wallet->balance,
                 ], 201);
-            });
+            }, 5); // retry 5 times on deadlock
 
-            return $response;
+        return $response;
+
         } catch (\Exception $e) {
             return response()->json(['error' => 'Booking failed: ' . $e->getMessage()], 500);
         }
