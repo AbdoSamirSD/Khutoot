@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\RouteStation;
 use App\Models\Ticket;
+use App\Models\Tracking;
 use Illuminate\Http\Request;
 use App\Models\TripInstance;
 use App\Models\Booking;
@@ -36,13 +38,33 @@ class TicketController extends Controller
             $response = \DB::transaction(function () use ($user, $request) 
             {
                 // 1. Fetch trip instance with related trip and bus details
-                $tripInstance = TripInstance::with(['trip.bus.seats', 'trip.route.routeStations'])
-                    ->lockForUpdate()
+                $tripInstance = TripInstance::with([
+                        'trip.bus.seats', 
+                        'trip.route.routeStations' => function($query) {
+                            $query->with('station')->orderBy('station_order');
+                        }
+                    ])->lockForUpdate()
                     ->find($request->trip_instance_id);
                 if (!$tripInstance) {
                     return response()->json(['error' => 'Trip instance not found'], 404);
                 }
 
+                if(!in_array($tripInstance->status, ['upcoming', 'on_going'])){
+                    return response()->json([
+                        'error' => 'Trip is already completed or cancelled. book an upcomin or on_going trip!'
+                    ], 422);
+                }
+
+                $isPassed = Tracking::where('trip_instance_id', $tripInstance->id)
+                    ->where('current_station_id', $request->pick_up_station_id)
+                    ->where('status', 'departed')
+                    ->exists();
+                
+                if($isPassed){
+                    return response()->json([
+                        'error' => 'The trip has already departed from the selected pick-up station. Please choose a different station or trip.'
+                    ], 422);
+                }
                 // 2. Validate pick-up and arrival stations
                 $stations = $tripInstance->trip->route->routeStations->sortBy('station_order')->pluck('station_id')->toArray();
                 $stationIndexMap = array_flip($stations);
@@ -190,27 +212,95 @@ class TicketController extends Controller
         }
     }
 
-    // view booking details
-    public function viewTicket($ticketId) {
-        // Business logic to retrieve ticket details by $ticketId
-        // Check if the ticket belongs to the authenticated user
 
+    // list all books (history of trips booked)
+    public function listBooks(Request $request) {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $bookings = Booking::where('user_id', $user->id)
+            ->with(['tripInstance.trip'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
         return response()->json([
-            'ticket_id' => $ticketId,
-            // 'trip_details' => $tripDetails,
-            // 'seats' => $seats,
-            // 'payment_info' => $paymentInfo,
-        ], 200);
+            'message' => 'bookings retrieved successfully',
+            'data' => $bookings->getCollection()->map(function($booking){
+                return [
+                    'booking_id' => $booking->id,
+                    'trip_name' => $booking->tripInstance->trip->name,
+                    'pick_up_station' => $booking->startStation->name,
+                    'arrival_station' => $booking->endStation->name
+                ];
+            }),
+            'pagination' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'per_page' => $bookings->perPage(),
+                'total' => $bookings->total(),
+            ]
+        ]);
     }
 
-    // list all tickets (history of trips booked)
-    public function listTickets(Request $request) {
-        // Business logic to retrieve all tickets for the authenticated user
-        // Implement pagination if necessary
+    // view booking details
+    public function viewBooking($BookingId) {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $booking = Booking::where('id', $BookingId)
+            ->where('user_id', $user->id)
+            ->with(['tripInstance.trip.bus', 'tripInstance.trip.route.routeStations.station', 'tickets.seat'])
+            ->first();
+        if (!$booking) {
+            return response()->json(['error' => 'Booking not found'], 404);
+        }
 
         return response()->json([
-            'tickets' => [
-                // List of tickets with details
+            'message' => 'booking details retrieved succefully',
+            'data' => [
+
+                'booking_id' => $booking->id,
+                'status' => $booking->status,
+                'total_fare' => $booking->price,
+                'pick_up_station' => $booking->startStation?->name,
+                'arrival_station' => $booking->endStation?->name,
+                'trip_instance' => [
+                    'id' => $booking->tripInstance->id,
+                    'departure_time' => $booking->tripInstance->departure_time,
+                    'arrival_time' => $booking->tripInstance->arrival_time,
+                    
+                    'trip' => [
+                        'id' => $booking->tripInstance->trip->id ?? null,
+                        'name' => $booking->tripInstance->trip->name ?? null,
+                        'bus' => [
+                            'id' => $booking->tripInstance->trip->bus->id ?? null,
+                            'license_plate' => $booking->tripInstance->trip->bus->license_plate ?? null,
+                        ],
+                        'route' => [
+                            'id' => $booking->tripInstance->trip->route->id ?? null,
+                            'name' => $booking->tripInstance->trip->route->name ?? null,
+                            'stations' => $booking->tripInstance->trip->route->routeStations->map(function($rs) {
+                                return [
+                                    'station_id' => $rs->station->id ?? null,
+                                    'station_name' => $rs->station->name ?? null,
+                                    'station_order' => $rs->station_order ?? null,
+                                ];
+                            })->sortBy('station_order')->values()->all(),
+                        ],
+                    ],
+                ],
+                'tickets' => $booking->tickets->map(function($ticket) {
+                    return [
+                        'ticket_id' => $ticket->id ?? null,
+                        'ticket_number' => $ticket->ticket_number ?? null,
+                        'seat_number' => $ticket->seat?->seat_number ,
+                        'status' => $ticket->status ?? null,
+                    ];
+                })->all(),
             ],
         ], 200);
     }
@@ -219,13 +309,84 @@ class TicketController extends Controller
     public function cancelTicket($ticketId) {
         // Business logic to cancel the ticket by $ticketId
         // Check if the ticket belongs to the authenticated user
-        // Check cancellation policy (e.g., time limits, fees)
-        // Update ticket status to cancelled
-        // Process refund if applicable
+        $user = auth('user')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        return response()->json([
-            'message' => 'Ticket cancelled successfully',
-        ], 200);
+        try{
+            $response = \DB::transaction(function() use ($user,$ticketId){
+                
+                $ticket = Ticket::lockForUpdate()->find($ticketId);
+                if (!$ticket) {
+                    return response()->json(['error' => 'Ticket not found'], 404);
+                }
+
+                if(in_array($ticket->status , ['used', 'canceled'])){
+                    return response()->json(['message' => 'Ticket is already canceled or used'], 200);
+                }
+
+                $booking = Booking::where('id', $ticket->booking_id)
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$booking) {
+                    return response()->json(['error' => 'Ticket does not belong to the user'], 403);
+                }
+                // Check cancellation policy (e.g., time limits, fees)
+                $tripInstance = TripInstance::find($booking->trip_instance_id);
+                if (!$tripInstance) {
+                    return response()->json(['error' => 'Associated trip instance not found'], 404);
+                }
+
+                // check if the start station is passed
+                $isPassed = Tracking::where('trip_instance_id', $tripInstance->id)
+                    ->where('current_station_id', $booking->start_station_id)
+                    ->whereIn('status', ['arrived', 'departed'])
+                    ->limit(1)
+                    ->exists();
+                if($isPassed){
+                    return response()->json([
+                        'message' => 'Cannot cancel booking. Station aleardy passed'
+                    ], 422);
+                }
+                
+                // Update ticket status to cancelled
+                $ticket->status = 'canceled';
+                $ticket->seat_status = 'available';
+                $ticket->save();
+
+                $activeTicketsExist = Ticket::where('booking_id', $booking->id)
+                    ->where('status', '!=', 'canceled')
+                    ->exists();
+                if (!$activeTicketsExist) {
+                    $booking->status = 'canceled';
+                }
+                $booking->save();
+
+                // Process refund if applicable
+                $wallet = $user->wallet()->lockForUpdate()->first();
+                $wallet->balance += $tripInstance->trip->price;
+                $wallet->save();
+                $wallet->transactions()->create([
+                    'user_wallet_id' => $wallet->id,
+                    'amount' => $tripInstance->trip->price,
+                    'type' => 'credit',
+                    'booking_id' => $booking->id
+                ]);
+
+                return response()->json([
+                    'message' => 'Ticket cancelled successfully',
+                    'refund' => $tripInstance->trip->price,
+                    'wallet_balance' => $wallet->balance,
+                ], 200);
+            }, 5);
+
+            return $response;
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Cancellation failed: '.$e->getMessage()], 500);
+        }
     }
 }
 
