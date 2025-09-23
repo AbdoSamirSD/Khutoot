@@ -68,7 +68,7 @@ class TripInstanceController extends Controller
                         $q2->where('name', 'like', "%{$query}%")
                            ->orWhere('source', 'like', "%{$query}%")
                            ->orWhere('destination', 'like', "%{$query}%")
-                           ->orWhereHas('routeStations.stations', function($q3) use ($query, $user){
+                           ->orWhereHas('routeStations.station', function($q3) use ($query, $user){
                                 $q3->where('name', 'like', "%{$query}%")
                                 ->orWhere('city', 'like', "%{$query}%");
                         });
