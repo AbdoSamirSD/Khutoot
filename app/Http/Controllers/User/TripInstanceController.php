@@ -60,15 +60,16 @@ class TripInstanceController extends Controller
         $tripInstances = TripInstance::with(
             ['trip' => fn($q) => $q->select('id', 'location', 'route_id'),
                         'trip.route' => fn($q) => $q->select('id', 'name', 'source', 'destination'),
+                        'trip.route.routeStations' => fn($q) => $q->select('id', 'route_id', 'station_id', 'station_order'),
                         'trip.route.routeStations.station' => fn($q) => $q->select('id', 'name', 'city')]
             )
-            ->whereHas('trip', function($q) use ($query, $user){
+            ->whereHas('trip', function($q) use ($query){
                 $q->where('location', 'like', "%{$query}%")
-                  ->orWhereHas('route', function($q2) use ($query, $user){
+                  ->orWhereHas('route', function($q2) use ($query){
                         $q2->where('name', 'like', "%{$query}%")
                            ->orWhere('source', 'like', "%{$query}%")
                            ->orWhere('destination', 'like', "%{$query}%")
-                           ->orWhereHas('routeStations.station', function($q3) use ($query, $user){
+                           ->orWhereHas('routeStations.station', function($q3) use ($query){
                                 $q3->where('name', 'like', "%{$query}%")
                                 ->orWhere('city', 'like', "%{$query}%");
                         });
