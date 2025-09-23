@@ -57,16 +57,6 @@ class TripInstanceController extends Controller
             ]);
         }
 
-        // $validator = \Validator::make($request->all(), [
-        //     'query' => 'required|string|min:1|max:50'
-        // ]);
-        // if($validator->fails()){
-        //     return response()->json([
-        //         'message' => 'Validation error',
-        //         'errors' => $validator->errors()
-        //     ], 422);
-        // }
-        // $query = $request->input('query');
         $tripInstances = TripInstance::with(
             ['trip' => fn($q) => $q->select('location'),
                         'trip.route' => fn($q) => $q->select('name', 'source', 'destination'),
@@ -108,8 +98,8 @@ class TripInstanceController extends Controller
                 'trip_instance_id' => $tripInstance->id,
                 'trip_location' => $tripInstance->trip->location ?? null,
                 'arrival_time' => $tripInstance->arrival_time,
-                'source' => $tripInstance->trip->route->source,
-                'destination' => $tripInstance->trip->route->destination,
+                'source' => $tripInstance->trip->route->source ?? null,
+                'destination' => $tripInstance->trip->route->destination ?? null,
                 'departure_time' => $tripInstance->departure_time,
                 'status' => $tripInstance->status,
             ];
