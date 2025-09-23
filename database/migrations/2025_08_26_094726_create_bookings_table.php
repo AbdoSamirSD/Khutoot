@@ -16,8 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('trip_instance_id')->constrained('trip_instances')->onDelete('cascade');
             $table->foreignId('seat_id')->constrained('seats')->onDelete('cascade');
-            $table->foreignId('start_station_id')->constrained('stations')->onDelete('cascade');
-            $table->foreignId('end_station_id')->constrained('stations')->onDelete('cascade');
+            // $table->foreignId('route_station_id')->constrained('route_stations')->onDelete('cascade');
+            // $table->Integer('start_station_order')->nullable();
+            // $table->Integer('end_station_order')->nullable();
             $table->integer('price')->default(0);
             $table->enum('status', ['pending', 'confirmed', 'canceled'])->default('pending');
             $table->timestamps();

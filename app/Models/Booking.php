@@ -35,14 +35,19 @@ class Booking extends Model
         return $this->belongsTo(Seat::class);
     }
 
-    public function startStation()
-    {
-        return $this->belongsTo(Station::class, 'start_station_id');
-    }
+    // public function startStation()
+    // {
+    //     return $this->belongsTo(Station::class, 'start_station_id');
+    // }
 
-    public function endStation()
+    // public function endStation()
+    // {
+    //     return $this->belongsTo(Station::class, 'end_station_id');
+    // }
+
+    public function routeStation()
     {
-        return $this->belongsTo(Station::class, 'end_station_id');
+        return $this->belongsTo(RouteStation::class);
     }
 
     public function transaction()

@@ -27,4 +27,8 @@ class RouteStation extends Model
     {
         return $this->belongsTo(Station::class);
     }
+
+    public function bookings(){
+        return $this->hasMany(Booking::class);
+    }
 }
