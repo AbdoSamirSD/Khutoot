@@ -98,12 +98,12 @@ class TicketController extends Controller
                     ->whereIn('seat_status', ['booked', 'reserved'])
                     ->whereIn('seat_id', $bookedSeats)
                     ->join('bookings', 'tickets.booking_id', '=', 'bookings.id')
-                    ->whereRaw('NOT (bookings.end_station_order <= ? OR bookings.start_station_order >= ?)', [
-                        $request->pick_up_station_order,
-                        $request->arrival_station_order
-                    ])
-                    ->select('tickets.seat_id', 'seats.seat_number')
                     ->join('seats', 'tickets.seat_id', '=', 'seats.id')
+                    ->where(function ($query) use ($request){
+                        $query->where('bookings.start_station_order', '<', $request->arrival_station_order)
+                              ->where('bookings.end_station_order', '>', $request->pick_up_station_order);
+                    })
+                    ->select('tickets.seat_id', 'seats.seat_number')
                     ->get()
                     ->map(function ($ticket) {
                         return [
