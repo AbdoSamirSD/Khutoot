@@ -62,7 +62,7 @@ Route::prefix('user')
             Route::get('/', [TripInstanceController::class, 'listTrips']); // List available trips
             // Done
 
-            Route::get('/search/{query}', [TripInstanceController::class, 'searchTrips']); // Search trips by criteria
+            Route::get('/search', [TripInstanceController::class, 'searchTrips']); // Search trips by criteria
             // Done
             
             Route::get('/{tripInstanceId}', [TripInstanceController::class, 'viewTrip']); // View trip details and available seats

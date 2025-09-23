@@ -34,7 +34,7 @@ class AuthController extends Controller
         return response()->json(['token' => $token, 'driver' => $driver], 200);
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         // Invalidate the driver's token
         $driver = Auth::guard('driver')->user();
