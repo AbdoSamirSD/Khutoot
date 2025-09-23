@@ -127,7 +127,7 @@ class TicketController extends Controller
                             'seat_id' => $seatId,
                             'seat_number' => $seatNumberMap[$seatId] ?? null,
                         ];
-                    }, array_diff($bookedSeats, array_column($unavailableSeats, 'seat_id')));
+                    }, array_diff($allSeats, array_column($unavailableSeats, 'seat_id')));
 
                     return response()->json([
                         'error' => 'One or more selected seats are not available',
