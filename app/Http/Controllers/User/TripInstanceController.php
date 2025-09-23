@@ -98,9 +98,9 @@ class TripInstanceController extends Controller
             return [
                 'trip_instance_id' => $tripInstance->id,
                 'trip_location' => $tripInstance->trip->location ?? null,
-                'arrival_time' => $tripInstance->arrival_time,
                 'source' => $tripInstance->trip->route->source ?? null,
                 'destination' => $tripInstance->trip->route->destination ?? null,
+                'arrival_time' => $tripInstance->arrival_time,
                 'departure_time' => $tripInstance->departure_time,
                 'status' => $tripInstance->status,
             ];
