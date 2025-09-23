@@ -106,7 +106,7 @@ class TicketController extends Controller
                     ->whereIn('seat_id', $bookedSeats)
                     ->join('bookings', 'tickets.booking_id', '=', 'bookings.id')
                     ->join('seats', 'tickets.seat_id', '=', 'seats.id')
-                    ->whereRaw('NOT (bookings.end_station_order < ? OR bookings.start_station_order > ?)', [
+                    ->whereRaw('(bookings.end_station_order < ? OR bookings.start_station_order > ?)', [
                         $request->pick_up_station_order,
                         $request->arrival_station_order
                     ])
@@ -119,7 +119,8 @@ class TicketController extends Controller
                             'reason' => 'Seat already booked for overlapping trip segment'
                         ];
                     })->toArray();
-
+                
+                // dd($unavailableSeats);
                 if ($unavailableSeats) {
                     $availableSeats = array_map(function ($seatId) use ($seatNumberMap) {
                         return [
