@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\RouteStation;
 use App\Models\Ticket;
 use App\Models\Tracking;
 use Illuminate\Http\Request;
@@ -39,9 +38,14 @@ class TicketController extends Controller
             {
                 // 1. Fetch trip instance with related trip and bus details
                 $tripInstance = TripInstance::with([
-                        'trip.bus.seats', 
+                        'trip.bus.seats' => function ($query) {
+                            $query->select('id', 'seat_number', 'bus_id')
+                                ->orderBy('seat_number');
+                        }, 
                         'trip.route.routeStations' => function($query) {
-                            $query->with('station')->orderBy('station_order');
+                            $query->with(['station' => function ($query){
+                                $query->select('id', 'name');
+                            }])->orderBy('station_order');
                         }
                     ])->lockForUpdate()
                     ->find($request->trip_instance_id);
@@ -212,9 +216,8 @@ class TicketController extends Controller
         }
     }
 
-
     // list all books (history of trips booked)
-    public function listBooks(Request $request) {
+    public function listBooks() {
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
