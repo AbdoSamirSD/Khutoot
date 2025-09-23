@@ -49,7 +49,7 @@ class TripInstanceController extends Controller
         ], 200);
     }
 
-    public function searchTrips(Request $request){
+    public function searchTrips($query){
         $user = auth('user')->user();
         if(!$user){
             return response()->json([
@@ -57,16 +57,16 @@ class TripInstanceController extends Controller
             ]);
         }
 
-        $validator = \Validator::make($request->all(), [
-            'query' => 'required|string|min:1|max:50'
-        ]);
-        if($validator->fails()){
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-        $query = $request->input('query');
+        // $validator = \Validator::make($request->all(), [
+        //     'query' => 'required|string|min:1|max:50'
+        // ]);
+        // if($validator->fails()){
+        //     return response()->json([
+        //         'message' => 'Validation error',
+        //         'errors' => $validator->errors()
+        //     ], 422);
+        // }
+        // $query = $request->input('query');
         $tripInstances = TripInstance::with(
             ['trip' => fn($q) => $q->select('location'),
                         'trip.route' => fn($q) => $q->select('name', 'source', 'destination'),
