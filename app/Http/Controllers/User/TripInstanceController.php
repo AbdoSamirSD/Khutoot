@@ -58,7 +58,7 @@ class TripInstanceController extends Controller
         }
 
         $tripInstances = TripInstance::with(
-            ['trip' => fn($q) => $q->select('id', 'location'),
+            ['trip' => fn($q) => $q->select('id', 'location', 'route_id'),
                         'trip.route' => fn($q) => $q->select('id', 'name', 'source', 'destination'),
                         'trip.route.routeStations.station' => fn($q) => $q->select('id', 'name', 'city')]
             )
