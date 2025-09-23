@@ -59,7 +59,7 @@ class TripInstanceController extends Controller
 
         $tripInstances = TripInstance::with(
             ['trip' => fn($q) => $q->select('id', 'location'),
-                        'trip.route' => fn($q) => $q->select('id', 'name', 'source', 'destination'),
+                        'trip.route' => fn($q) => $q->select('id', 'trip_id', 'name', 'source', 'destination'),
                         'trip.route.routeStations.station' => fn($q) => $q->select('id', 'name', 'city')]
             )
             ->whereHas('trip', function($q) use ($query, $user){
