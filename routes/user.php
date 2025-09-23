@@ -47,8 +47,8 @@ Route::prefix('user')
             // Done
         });
 
-        Route::prefix('book-ticket')->group(function(){
-            Route::post('/', [TicketController::class, 'bookTickets']); // Book tickets
+        Route::prefix('bookings')->group(function(){
+            Route::post('/book-tickits', [TicketController::class, 'bookTickets']); // Book tickets
             // Done
             Route::get('/', [TicketController::class, 'listBooks']); // List all tickets (history of trips booked)
             // Done
