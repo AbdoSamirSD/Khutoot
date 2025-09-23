@@ -17,7 +17,13 @@ class Station extends Model
 
     public function routeStations()
     {
-        return $this->belongsToMany(RouteStation::class);
+        return $this->hasMany(RouteStation::class);
+    }
+
+    public function routes()
+    {
+        return $this->belongsToMany(Route::class, 'route_stations')
+                    ->withPivot(['station_order', 'arrival_time', 'departure_time']);
     }
 
     public function buses()

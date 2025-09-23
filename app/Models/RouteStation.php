@@ -25,6 +25,6 @@ class RouteStation extends Model
 
     public function stations()
     {
-        return $this->hasMany(Station::class);
+        return $this->belongsTo(Station::class);
     }
 }

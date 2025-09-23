@@ -22,7 +22,8 @@ class Route extends Model
 
     public function stations()
     {
-        return $this->hasMany(Station::class, 'route_stations')->withPivot(['station_order', 'arrival_time', 'departure_time']);
+        return $this->belongsToMany(Station::class, 'route_stations')
+                    ->withPivot(['station_order', 'arrival_time', 'departure_time']);
     }
 
     public function routeStations()
