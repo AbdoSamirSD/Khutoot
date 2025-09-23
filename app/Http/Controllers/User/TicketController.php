@@ -94,15 +94,22 @@ class TicketController extends Controller
                 }
 
                 $allSeats = $tripInstance->trip->bus->seats->pluck('id')->toArray();
+                $invalidSeats = array_diff($bookedSeats, $allSeats);
+                if ($invalidSeats) {
+                    return response()->json([
+                        'error' => 'Some selected seats do not exist',
+                        'invalid_seats' => array_map(fn($id) => "Seat ID $id", $invalidSeats)
+                    ], 422);
+                }
                 $unavailableSeats = Ticket::where('trip_instance_id', $tripInstance->id)
                     ->whereIn('seat_status', ['booked', 'reserved'])
                     ->whereIn('seat_id', $bookedSeats)
                     ->join('bookings', 'tickets.booking_id', '=', 'bookings.id')
                     ->join('seats', 'tickets.seat_id', '=', 'seats.id')
-                    ->where(function ($query) use ($request){
-                        $query->where('bookings.start_station_order', '<', $request->arrival_station_order)
-                              ->where('bookings.end_station_order', '>', $request->pick_up_station_order);
-                    })
+                    ->whereRaw('NOT (bookings.end_station_order < ? OR bookings.start_station_order > ?)', [
+                        $request->pick_up_station_order,
+                        $request->arrival_station_order
+                    ])
                     ->select('tickets.seat_id', 'seats.seat_number')
                     ->get()
                     ->map(function ($ticket) {
@@ -125,13 +132,6 @@ class TicketController extends Controller
                         'error' => 'One or more selected seats are not available',
                         'unavailable_seats' => $unavailableSeats,
                         'available_seats' => $availableSeats
-                    ], 422);
-                }
-                $invalidSeats = array_diff($bookedSeats, $allSeats);
-                if ($invalidSeats) {
-                    return response()->json([
-                        'error' => 'Some selected seats do not exist',
-                        'invalid_seats' => array_map(fn($id) => "Seat ID $id", $invalidSeats)
                     ], 422);
                 }
                 
