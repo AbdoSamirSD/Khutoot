@@ -72,16 +72,24 @@ class TrackingController extends Controller
         $lastStationIndex  = array_search($lastTracking->current_station_id, $stationIds);
         $nextStationId = $stationIds[$lastStationIndex + 1] ?? null;
         
-        if ($status === 'delayed' && !in_array($current_station_id, [$lastTracking->current_station_id, $nextStationId])) {
-            return response()->json(['error' => 'Delay can only be reported for the current or the next station.'], 422);
+        if ($status === 'delayed') {
+            if (!in_array($current_station_id, [$lastTracking->current_station_id, $nextStationId])) {
+                return response()->json(['error' => 'Delay can only be reported for the current or the next station.'], 422);
+            }
         }
 
-        if ($status === 'arrived' && $lastTracking->status === 'departed' && $current_station_id !== $nextStationId) {
-            return response()->json(['error' => 'You must arrive at the next station in sequence.'], 422);
+        if ($status === 'arrived') {
+            if ($lastTracking->status === 'departed' && $current_station_id !== $nextStationId) {
+                return response()->json(['error' => 'You must arrive at the next station in sequence.'], 422);
+            }
         }
 
-        if ($status === 'departed' && in_array($lastTracking->status, ['arrived', 'delayed']) && $lastTracking->current_station_id !== $current_station_id) {
-            return response()->json(['error' => 'You must depart from the same station after arriving.'], 422);
+        if ($status === 'departed') {
+            if (in_array($lastTracking->status, ['arrived', 'delayed'])) {
+                if ($current_station_id !== $lastTracking->current_station_id && $current_station_id !== $nextStationId) {
+                    return response()->json(['error' => 'You must depart from the same station after arriving.'], 422);
+                }
+            }
         }
         
         $tripInstance->trackings()->create([
