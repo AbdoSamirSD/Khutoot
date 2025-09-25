@@ -86,7 +86,7 @@ class TrackingController extends Controller
 
         if ($status === 'departed') {
             if (in_array($lastTracking->status, ['arrived', 'delayed'])) {
-                if ($current_station_id !== $lastTracking->current_station_id && $current_station_id !== $nextStationId) {
+                if ($current_station_id !== $lastTracking->current_station_id) {
                     return response()->json(['error' => 'You must depart from the same station after arriving.'], 422);
                 }
             }
