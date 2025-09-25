@@ -8,6 +8,7 @@ use App\Http\Controllers\User\WalletController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\TicketController;
 use App\Http\Controllers\User\TripInstanceController;
+use App\Http\Controllers\User\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\TransferStats;
@@ -74,6 +75,11 @@ Route::prefix('user')
 
         Route::prefix('lines')->group(function (){
             Route::get('/', [TripInstanceController::class, 'listLines']); // List all lines
+            // Done
+        });
+
+        Route::prefix('subscriptions')->group(function (){
+            Route::get('/', [SubscriptionController::class, 'listSubscriptions']); // List all subscriptions
         });
 
         Route::prefix('notifications')->group(function(){
