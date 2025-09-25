@@ -9,7 +9,8 @@ use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\TicketController;
 use App\Http\Controllers\User\TripInstanceController;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Http;
+use GuzzleHttp\TransferStats;
 
 
 
@@ -96,3 +97,22 @@ Route::prefix('user')
         });
     });
 
+
+// Route::get('/onesignal/test', function () {
+//     $url = env('ONESIGNAL_REST_API_URL', 'https://api.onesignal.com') . '/notifications';
+//     $response = Http::withHeaders([
+//         'Authorization' => 'Key ' . env('ONESIGNAL_REST_API_KEY'),
+//         'Content-Type' => 'application/json'
+//     ])->post($url, [
+//         'app_id' => env('ONESIGNAL_APP_ID'),
+//         'included_segments' => ['Subscribed Users'],
+//         'headings' => ['en' => 'Laravel test'],
+//         'contents' => ['en' => 'Direct HTTP test (no package)']
+//     ]);
+
+//     // debug: return status + json
+//     return response()->json([
+//         'status' => $response->status(),
+//         'body' => $response->json()
+//     ]);
+// });
