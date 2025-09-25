@@ -64,7 +64,7 @@ class TrackingController extends Controller
             return response()->json(['error' => 'You cannot depart from the last station. Trip should be ended instead.'], 422);
         }
             
-        $lastTracking = $tripInstance->trackings()->latest('last_updated')->first();
+        $lastTracking = $tripInstance->trackings()->latest('last_updated');
         if (!$lastTracking) {
             return response()->json(['error' => 'No tracking history found. Ensure the trip has been started properly.'], 400);
         }
