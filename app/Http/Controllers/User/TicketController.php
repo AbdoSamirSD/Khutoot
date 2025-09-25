@@ -12,7 +12,6 @@ use App\Models\Booking;
 class TicketController extends Controller
 {
     // book tickets
-
     public function bookTickets(Request $request) {
         $user = auth('user')->user();
         if (!$user) {
@@ -86,7 +85,6 @@ class TicketController extends Controller
                     ], 422);
                 }
 
-
                 // 4. check seat availability
                 $bookedSeats = array_values(array_unique($request->seats));
                 if (count($bookedSeats) !== count($request->seats)) {
@@ -120,7 +118,6 @@ class TicketController extends Controller
                         ];
                     })->toArray();
                 
-                // dd($unavailableSeats);
                 if ($unavailableSeats) {
                     $availableSeats = array_map(function ($seatId) use ($seatNumberMap) {
                         return [
@@ -155,7 +152,6 @@ class TicketController extends Controller
                     'status' => 'confirmed',
                 ]);
         
-        
                 // 7. process payment
                 // create tickets for each seat
                 $ticketsData = [];
@@ -174,7 +170,6 @@ class TicketController extends Controller
                 Ticket::insert($ticketsData);
                 $tickets = Ticket::where('booking_id', $booking->id)->with('seat')->get();
                 
-                
                 // Deduct from wallet
                 $wallet->balance -= $totalFare;
                 $wallet->save();
@@ -186,7 +181,6 @@ class TicketController extends Controller
                     'type' => 'debit',
                     'booking_id' => $booking->id,
                 ]);
-        
         
                 // 8. return response
                 return response()->json([
@@ -213,8 +207,6 @@ class TicketController extends Controller
         }
     }
     
-    
-
     // list all books (history of trips booked)
     public function listBooks() {
         $user = auth()->user();
