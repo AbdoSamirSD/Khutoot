@@ -255,8 +255,8 @@ class TripInstanceController extends Controller
                         'station_id' => $routeStation->station->id,
                         'name' => $routeStation->station->name,
                         'city' => $routeStation->station->city,
-                        'arrival_time' => $routeStation->arrival_time?->toDateTimeString(),
-                        'departure_time' => $routeStation->departure_time?->toDateTimeString(),
+                        'arrival_time' => $routeStation->arrival_time?->toTimeString(),
+                        'departure_time' => $routeStation->departure_time?->toTimeString(),
                         'station_order' => $routeStation->station_order,
                     ];
                 })->values()->all(),
