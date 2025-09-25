@@ -72,6 +72,10 @@ Route::prefix('user')
             // Route::get('/{tripInstanceId}/tracking', [TripInstanceController::class, 'tracking']); // Real-time tracking of trip instance
         });
 
+        Route::prefix('lines')->group(function (){
+            Route::get('/', [TripInstanceController::class, 'listLines']); // List all lines
+        });
+
         Route::prefix('notifications')->group(function(){
             Route::get('/', [NotificationController::class, 'index']); // List notifications
             Route::post('/mark-read', [NotificationController::class, 'markAsRead']); // Mark notifications as read

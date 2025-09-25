@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\TripInstance;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Models\Route;
 
 class TripInstanceController extends Controller
 {
@@ -185,5 +185,106 @@ class TripInstanceController extends Controller
                 ]
             ]
         ], 200);
+    }
+
+    public function listLines(){
+        $user = auth('user')->user();
+        if(!$user){
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        }
+
+        // lines = routes
+        $lines = Route::with([
+            'routeStations' => fn($q) => $q->orderBy('station_order')->with('station:id,name,city'),
+            'trips' => fn($q) => $q->select('id', 'route_id', 'location')->with([
+            'tripInstances' => fn($q) => $q->where('departure_time', '>=', now())
+                ->whereIn('status', ['upcoming', 'on_going'])
+                ->orderBy('departure_time')
+                ->select('id', 'trip_id', 'departure_time', 'arrival_time', 'status')
+                ->take(5)
+            ])
+        ])
+        ->select('id', 'name')
+        ->paginate(10);
+
+        if($lines->isEmpty()){
+            return response()->json([
+                'message' => 'No lines found.',
+                'data' => [],
+                'pagination' => [
+                    'current_page' => $lines->currentPage(),
+                    'next_page_url' => $lines->nextPageUrl(),
+                    'previous_page_url' => $lines->previousPageUrl(),
+                    'last_page' => $lines->lastPage(),
+                    'per_page' => $lines->perPage(),
+                    'total' => $lines->total(),
+                ]
+            ]);
+        }
+
+        $hasTrips = $lines->getCollection()->contains(function($line){
+            return $line->trips->contains(function($trip){
+                return $trip->tripInstances->isNotEmpty();
+            });
+        });
+
+        if(!$hasTrips){
+            return response()->json([
+                'message' => 'No upcoming or ongoing trips found for any line.',
+                'data' => [],
+                'pagination' => [
+                    'current_page' => $lines->currentPage(),
+                    'next_page_url' => $lines->nextPageUrl(),
+                    'previous_page_url' => $lines->previousPageUrl(),
+                    'last_page' => $lines->lastPage(),
+                    'per_page' => $lines->perPage(),
+                    'total' => $lines->total(),
+                ]
+            ]);
+        }
+        return response()->json([
+        'message' => 'Lines retrieved successfully.',
+        'data' => $lines->getCollection()->map(function ($line) {
+            return [
+                'line_id' => $line->id,
+                'line_name' => $line->name,
+                'stations' => $line->routeStations->map(function ($routeStation) {
+                    return [
+                        'station_id' => $routeStation->station->id,
+                        'name' => $routeStation->station->name,
+                        'city' => $routeStation->station->city,
+                        'arrival_time' => $routeStation->arrival_time?->toDateTimeString(),
+                        'departure_time' => $routeStation->departure_time?->toDateTimeString(),
+                        'station_order' => $routeStation->station_order,
+                    ];
+                })->values()->all(),
+                'upcoming_trips' => $line->trips->flatMap(function ($trip) {
+                    return $trip->tripInstances->map(function ($tripInstance) use ($trip) {
+                        return [
+                            'trip_instance_id' => $tripInstance->id,
+                            'trip_id' => $tripInstance->trip_id,
+                            'location' => $trip->location ?? null,
+                            'departure_time' => $tripInstance->departure_time?->toDateTimeString(),
+                            'arrival_time' => $tripInstance->arrival_time?->toDateTimeString(),
+                            'status' => $tripInstance->status,
+                        ];
+                    });
+                })->values()->all(),
+                'count_trip_instances' => $line->trips->sum(function ($trip) {
+                    return $trip->tripInstances->count();
+                }),
+            ];
+        })->values()->all(),
+        'pagination' => [
+            'current_page' => $lines->currentPage(),
+            'next_page_url' => $lines->nextPageUrl(),
+            'previous_page_url' => $lines->previousPageUrl(),
+            'last_page' => $lines->lastPage(),
+            'per_page' => $lines->perPage(),
+            'total' => $lines->total(),
+        ]
+    ], 200);
     }
 }
