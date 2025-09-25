@@ -27,7 +27,7 @@ class TrackingController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $current_station_id = $request->input('current_station_id');
+        $current_station_id = (int) $request->input('current_station_id');
         $status = $request->input('status');
 
         // check if the trip instance belongs to the authenticated driver
@@ -86,7 +86,7 @@ class TrackingController extends Controller
 
         if ($status === 'departed') {
             if (in_array($lastTracking->status, ['arrived', 'delayed'])) {
-                if ($current_station_id != $lastTracking->current_station_id) {
+                if ($current_station_id !== $lastTracking->current_station_id) {
                     return response()->json(['error' => 'You must depart from the same station after arriving.'], 422);
                 }
             }
