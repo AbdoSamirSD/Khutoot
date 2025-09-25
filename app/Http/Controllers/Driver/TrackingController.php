@@ -49,16 +49,11 @@ class TrackingController extends Controller
         }
 
         $stationIds = $routeStations->pluck('station_id')->toArray();
-        // $firstStationId = $routeStations->first()->station_id;
         $lastStationId = $routeStations->last()->station_id;
 
         if (!in_array($current_station_id, $stationIds)) {
             return response()->json(['error' => 'The specified station is not part of the trip\'s route.'], 400);
         }
-
-        // if ($current_station_id === $firstStationId && $status === 'arrived') {
-        //     return response()->json(['error' => 'Trip has not started yet. Please start trip first.'], 400);
-        // }
         
         if ($current_station_id === $lastStationId && $status === 'departed') {
             return response()->json(['error' => 'You cannot depart from the last station. Trip should be ended instead.'], 422);
