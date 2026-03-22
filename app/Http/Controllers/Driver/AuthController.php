@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Driver;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
-use Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Driver;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -42,6 +42,9 @@ class AuthController extends Controller
         if (!$driver) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+        /**
+         * @var \Laravel\Sanctum\HasApiTokens $driver
+         */
 
         $driver->tokens()->delete();
 

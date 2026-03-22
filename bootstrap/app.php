@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // add middlewares here instead kernel file
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'Route'     => Illuminate\Support\Facades\Route::class,
+            'Validator' => Illuminate\Support\Facades\Validator::class,
+            'Hash'      => Illuminate\Support\Facades\Hash::class,
+            
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
